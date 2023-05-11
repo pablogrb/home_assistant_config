@@ -1,0 +1,439 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Text to speech
+tts:
+  - platform: google_translate
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+logger:
+  default: info
+  logs: 
+    homeassistant.components.rest: debug
+
+mqtt:
+  sensor:
+  # MQTT config for met and env data
+    # Bresser 5-in-1 met station sensor
+    - name: outside_temp_C
+      state_topic: "rtl_433/406136645/temperature_C"
+      device_class: temperature
+      unique_id: bresser_temp_0
+      unit_of_measurement: '°C'
+
+    - name: outside_relhum
+      state_topic: "rtl_433/406136645/humidity"
+      device_class: humidity
+      unique_id: bresser_rh_0
+      unit_of_measurement: '%'
+
+    - name: outside_rain
+      state_topic: "rtl_433/406136645/rain_mm"
+#      device_class: None
+      unique_id: bresser_rain_0
+      unit_of_measurement: "mm"
+
+    - name: outside_wind_speed
+      state_topic: "rtl_433/406136645/wind_avg_m_s"
+#      device_class: None
+      unique_id: bresser_wind_speed_0
+      unit_of_measurement: "m/s"
+
+    - name: outside_wind_gust
+      state_topic: "rtl_433/406136645/wind_max_m_s"
+#      device_class: None
+      unique_id: bresser_wind_gust_0
+      unit_of_measurement: "m/s"
+
+    - name: outside_wind_dir
+      state_topic: "rtl_433/406136645/wind_dir_deg"
+#      device_class: None
+      unique_id: bresser_wind_dir_0
+      unit_of_measurement: "°"
+
+    # Bresser Thermo-/Hygro-Sensor 7 Channel
+    - name: livingroom_temp_c
+      state_topic: "rtl_433/1918174822/temperature_C"
+      device_class: temperature
+      unique_id: bresser_temp_1
+      unit_of_measurement: '°C'
+
+    - name: livingroom_relhum
+      state_topic: "rtl_433/1918174822/humidity"
+      device_class: humidity
+      unique_id: bresser_rh_1
+      unit_of_measurement: '%'
+
+  # MQTT config for power data
+    - name: "Smart Meter Electricity: Import"
+      unique_id: "smart_meter_electricity_import"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "energy"
+      unit_of_measurement: "kWh"
+      state_class: "total_increasing"
+      value_template: >
+        {% if value_json['electricitymeter']['energy']['import']['cumulative'] == 0 %}
+          {{ states('sensor.smart_meter_electricity_import') }}
+        {% else %}
+          {{ value_json['electricitymeter']['energy']['import']['cumulative'] }}
+        {% endif %}
+      icon: "mdi:flash"
+    - name: "Smart Meter Electricity: Import (Today)"
+      unique_id: "smart_meter_electricity_import_today"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "energy"
+      unit_of_measurement: "kWh"
+      state_class: "measurement"
+      value_template: >
+        {% if value_json['electricitymeter']['energy']['import']['day'] == 0 
+          and now() > now().replace(hour=0).replace(minute=1).replace(second=0).replace(microsecond=0) %}
+          {{ states('sensor.smart_meter_electricity_import_today') }}
+        {% else %}
+          {{ value_json['electricitymeter']['energy']['import']['day'] }}
+        {% endif %}
+      icon: "mdi:flash"
+    - name: "Smart Meter Electricity: Import (This week)"
+      unique_id: "smart_meter_electricity_import_week"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "energy"
+      unit_of_measurement: "kWh"
+      state_class: "measurement"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['week'] }}"
+      icon: "mdi:flash"
+    - name: "Smart Meter Electricity: Import (This month)"
+      unique_id: "smart_meter_electricity_import_month"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "energy"
+      unit_of_measurement: "kWh"
+      state_class: "measurement"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['month'] }}"
+      icon: "mdi:flash"
+    - name: "Smart Meter Electricity: Import Unit Rate"
+      unique_id: "smart_meter_electricity_import_unit_rate"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "monetary"
+      unit_of_measurement: "GBP/kWh"
+      state_class: "measurement"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['price']['unitrate'] }}"
+      icon: "mdi:cash"
+    - name: "Smart Meter Electricity: Import Standing Charge"
+      unique_id: "smart_meter_electricity_import_standing_charge"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "monetary"
+      unit_of_measurement: "GBP"
+      state_class: "measurement"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['price']['standingcharge'] }}"
+      icon: "mdi:cash"
+    - name: "Smart Meter Electricity: Power"
+      unique_id: "smart_meter_electricity_power"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "power"
+      unit_of_measurement: "kW"
+      state_class: "measurement"
+      value_template: >
+        {% if value_json['electricitymeter']['power']['value'] < 0 %}
+          {{ states('sensor.smart_meter_electricity_power') }}
+        {% else %}
+          {{ value_json['electricitymeter']['power']['value'] }}
+        {% endif %}
+      icon: "mdi:flash"
+
+template:
+  sensor:
+    # # Formatted AQ
+    # - name: "Office PM2.5"
+    #   unit_of_measurement: "μg/m³"
+    #   device_class: "pm25"
+    #   unique_id: "vindriktning_397775_pm25_1f"
+    #   state: >
+    #     {% set aq_of = states('sensor.vindriktning_397775_pm_2_5') %}
+    #     {{"{:.1f}".format(float(aq_of))}}
+    # - name: "Living Room PM2.5"
+    #   unit_of_measurement: "μg/m³"
+    #   device_class: "pm25"
+    #   unique_id: "vindriktning_397778_pm25_1f"
+    #   state: >
+    #     {% set aq_of = states('sensor.vindriktning_397778_pm_2_5') %}
+    #     {{"{:.1f}".format(float(aq_of))}}
+    # - name: "Bedroom PM2.5"
+    #   unit_of_measurement: "μg/m³"
+    #   device_class: "pm25"
+    #   unique_id: "vindriktning_3979e1_pm25_1f"
+    #   state: >
+    #     {% set aq_of = states('sensor.vindriktning_3979e1_pm_2_5') %}
+    #     {{"{:.1f}".format(float(aq_of))}}
+    # - name: "Outside PM2.5"
+    #   unit_of_measurement: "μg/m³"
+    #   device_class: "pm25"
+    #   unique_id: "zephyr_311_pm25_1f"
+    #   state: >
+    #     {% set aq_of = states('sensor.zephyr_311_pm25') %}
+    #     {{"{:.1f}".format(float(aq_of))}}
+    # - name: "Outside NOx"
+    #   unit_of_measurement: "μg/m³"
+    #   unique_id: "zephyr_311_nox_1f"
+    #   state: >
+    #     {% set aq_of = states('sensor.zephyr_311_nox') %}
+    #     {{"{:.1f}".format(float(aq_of))}}
+    # - name: "Outside O3"
+    #   unit_of_measurement: "μg/m³"
+    #   device_class: "ozone"
+    #   unique_id: "zephyr_311_o3_1f"
+    #   state: >
+    #     {% set aq_of = states('sensor.zephyr_311_o3') %}
+    #     {{"{:.1f}".format(float(aq_of))}}
+    # Feels-like temperature
+    - name: outside_feels_like
+      unit_of_measurement: '°C'
+      device_class: temperature
+      unique_id: bresser_feel_temp
+      state: >
+        {% set e = 2.71828 %}
+        {% set t_a = states('sensor.outside_temp_c') | float %}
+        {% set RH  = states('sensor.outside_relhum') | float %}
+        {% set ws  = states('sensor.outside_wind_speed') | float %}
+        {% set wvp = RH/100*6.105*e**((12.27*t_a)/(237.7+t_a)) %}
+        {% set AT = t_a + 0.33*wvp - 0.7*ws - 4 %}
+        {{AT}}
+    # Energy Costs
+    - name: "Smart Meter Electricity: Cost (Today)"
+      unique_id: smart_meter_electricity_cost_today
+      device_class: monetary
+      unit_of_measurement: "GBP"
+      state_class: "total_increasing"
+      icon: mdi:cash
+      state: "{{ (
+          states('sensor.smart_meter_electricity_import_today') | float 
+          * states('sensor.smart_meter_electricity_import_unit_rate') | float 
+          + states('sensor.smart_meter_electricity_import_standing_charge') | float
+        ) | round(2) }}"
+
+
+sensor:
+  - platform: rest
+    name: "zephyr_311"
+    resource_template: https://data.earthsense.co.uk/measurementdata/v1/311/{{ (utcnow()-timedelta(minutes=17)).strftime('%Y%m%d%H%M') }}/{{ (utcnow()-timedelta(minutes=2)).strftime('%Y%m%d%H%M') }}/A/3
+    unique_id: "zephyr_311"
+    # check every 15 minutes
+    scan_interval: 900
+    force_update: true
+    headers:
+      accept: application/json
+      username: Pablos_Zephyr
+      userkey: Et9RnlxeUsrGaeyz
+    json_attributes_path: "$['data']['15 min average on the quarter hours']['slotA']"
+    json_attributes:
+      - "O3"
+      - "NO"
+      - "NO2"
+      - "particulatePM1"
+      - "particulatePM25"
+      - "particulatePM10"
+      - "tempC"
+      - "humidity"
+      - "ambTempC"
+      - "ambHumidity"
+      - "ambPressure"
+    value_template: "OK"
+  - platform: template
+    sensors:
+      zephyr_311_o3:
+        value_template: "{{ state_attr('sensor.zephyr_311', 'O3')['data'][0] }}"
+        device_class: ozone
+        unit_of_measurement: "μg/m³"
+        unique_id: zephyr_311_ozone
+      zephyr_311_no:
+        value_template: "{{ state_attr('sensor.zephyr_311', 'NO')['data'][0] }}"
+        device_class: nitrogen_monoxide
+        unit_of_measurement: "μg/m³"
+        unique_id: zephyr_311_no
+      zephyr_311_no2:
+        value_template: "{{ state_attr('sensor.zephyr_311', 'NO2')['data'][0] }}"
+        device_class: nitrogen_dioxide
+        unit_of_measurement: "μg/m³"
+        unique_id: zephyr_311_no2
+      zephyr_311_nox:
+        value_template: "{{ state_attr('sensor.zephyr_311', 'NO2')['data'][0] + state_attr('sensor.zephyr_311', 'NO')['data'][0]*1.5335 }}"
+        # device_class: nitrogen_oxides
+        unit_of_measurement: "μg/m³"
+        unique_id: zephyr_311_nox
+      zephyr_311_pm1:
+        value_template: "{{ state_attr('sensor.zephyr_311', 'particulatePM1')['data'][0] }}"
+        device_class: pm1
+        unit_of_measurement: "μg/m³"
+        unique_id: zephyr_311_pm1
+      zephyr_311_pm25:
+        value_template: "{{ state_attr('sensor.zephyr_311', 'particulatePM25')['data'][0] }}"
+        device_class: pm25
+        unit_of_measurement: "μg/m³"
+        unique_id: zephyr_311_pm25
+      zephyr_311_pm10:
+        value_template: "{{ state_attr('sensor.zephyr_311', 'particulatePM10')['data'][0] }}"
+        device_class: pm10
+        unit_of_measurement: "μg/m³"
+        unique_id: zephyr_311_pm10
+      zephyr_311_tempc:
+        value_template: "{{ state_attr('sensor.zephyr_311', 'tempC')['data'][0] }}"
+        device_class: temperature
+        unit_of_measurement: "°C"
+        unique_id: zephyr_311_tempc
+      zephyr_311_humidity:
+        value_template: "{{ state_attr('sensor.zephyr_311', 'humidity')['data'][0] }}"
+        device_class: humidity
+        unit_of_measurement: "%"
+        unique_id: zephyr_311_humidity
+      zephyr_311_ambtempc:
+        value_template: "{{ state_attr('sensor.zephyr_311', 'ambTempC')['data'][0] }}"
+        device_class: temperature
+        unit_of_measurement: "°C"
+        unique_id: zephyr_311_ambtempc
+      zephyr_311_ambhumidity:
+        value_template: "{{ state_attr('sensor.zephyr_311', 'ambHumidity')['data'][0] }}"
+        device_class: humidity
+        unit_of_measurement: "%"
+        unique_id: zephyr_311_ambhumidity
+      zephyr_311_ambpressure:
+        value_template: "{{ state_attr('sensor.zephyr_311', 'ambPressure')['data'][0] / 100 }}"
+        device_class: pressure
+        unit_of_measurement: "hPa"
+        unique_id: zephyr_311_ambpressure
+  - platform: rest
+    name: "zephyr_311_head"
+    resource_template: https://data.earthsense.co.uk/measurementdata/v1/311/{{ (utcnow()-timedelta(minutes=17)).strftime('%Y%m%d%H%M') }}/{{ (utcnow()-timedelta(minutes=2)).strftime('%Y%m%d%H%M') }}/A/3
+    unique_id: "zephyr_311_head"
+    # check every 15 minutes
+    scan_interval: 900
+    force_update: true
+    headers:
+      accept: application/json
+      username: Pablos_Zephyr
+      userkey: Et9RnlxeUsrGaeyz
+    json_attributes_path: "$['data']['15 min average on the quarter hours']['head']"
+    json_attributes:
+      - "UTS"
+      - "latitude"
+      - "longitude"
+    value_template: "OK"
+  - platform: template
+    sensors:
+      zephyr_uts:
+        value_template: "{{ state_attr('sensor.zephyr_311_head', 'UTS')['data'][0] }}"
+        unique_id: zephyr_311_UTS
+        attribute_templates:
+          latitude: "{{ state_attr('sensor.zephyr_311_head', 'latitude')['data'][0] }}"
+          longitude: "{{ state_attr('sensor.zephyr_311_head', 'longitude')['data'][0] }}"
+  # blank sensor for labels
+  - platform: template
+    sensors:
+      blank_blank:
+        friendly_name: "Blank Blank"
+        value_template: " "
+
+# Thermostatic temperature control
+climate:
+  - platform: generic_thermostat
+    name: Office
+    unique_id: climate.office
+    heater: light.sonoff_01minizb_192889fe_on_off
+    target_sensor: sensor.office_temp_c
+    min_temp: 12
+    max_temp: 20
+    ac_mode: false
+    target_temp: 18
+    cold_tolerance: 0.3
+    hot_tolerance: 0
+    min_cycle_duration:
+      seconds: 30
+    initial_hvac_mode: "off"
+    away_temp: 12
+    comfort_temp: 18
+    precision: 0.1
+    target_temp_step: 0.5
+  - platform: generic_thermostat
+    name: Bedroom
+    unique_id: climate.bedroom
+    heater: light.sonoff_01minizb_f52758fe_on_off
+    target_sensor: sensor.ewelink_th01_971e4425_temperature
+    min_temp: 12
+    max_temp: 20
+    ac_mode: false
+    target_temp: 18
+    cold_tolerance: 0.2
+    hot_tolerance: 0
+    min_cycle_duration:
+      seconds: 30
+    initial_hvac_mode: "off"
+    away_temp: 12
+    comfort_temp: 18
+    precision: 0.1
+    target_temp_step: 0.5
+  - platform: generic_thermostat
+    name: Living Room
+    unique_id: climate.living_room
+    heater: light.sonoff_01minizb_bc7162fe_on_off
+    target_sensor: sensor.ewelink_th01_21bb4325_temperature
+    min_temp: 12
+    max_temp: 20
+    ac_mode: false
+    target_temp: 18
+    cold_tolerance: 0.2
+    hot_tolerance: 0
+    min_cycle_duration:
+      seconds: 30
+    initial_hvac_mode: "off"
+    away_temp: 12
+    comfort_temp: 18
+    precision: 0.1
+    target_temp_step: 0.5
+
+switch:
+  - platform: template
+    switches:
+      office_thermostat:
+        unique_id: climate.office_switch
+        value_template: "{{is_state('climate.office','heat')}}"
+        turn_on:
+          service: climate.set_hvac_mode
+          data:
+            hvac_mode: 'heat'
+          target:
+            entity_id: climate.office
+        turn_off:
+          service: climate.set_hvac_mode
+          data:
+            hvac_mode: 'off'
+          target:
+            entity_id: climate.office
+      living_room_thermostat:
+        unique_id: climate.living_room_switch
+        value_template: "{{is_state('climate.bedroom_2','heat')}}"
+        turn_on:
+          service: climate.set_hvac_mode
+          data:
+            hvac_mode: 'heat'
+          target:
+            entity_id: climate.bedroom_2
+        turn_off:
+          service: climate.set_hvac_mode
+          data:
+            hvac_mode: 'off'
+          target:
+            entity_id: climate.bedroom_2
+      bedroom_thermostat:
+        unique_id: climate.bedroom_switch
+        value_template: "{{is_state('climate.bedroom','heat')}}"
+        turn_on:
+          service: climate.set_hvac_mode
+          data:
+            hvac_mode: 'heat'
+          target:
+            entity_id: climate.bedroom
+        turn_off:
+          service: climate.set_hvac_mode
+          data:
+            hvac_mode: 'off'
+          target:
+            entity_id: climate.bedroom

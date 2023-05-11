@@ -1,0 +1,1 @@
+docker run -d --name homeassistant --privileged --restart=unless-stopped -e TZ=Europe/London -v /home/pi/homeassistant:/config --network=host --device /dev/ttyUSB0:/dev/ttyUSB0 ghcr.io/home-assistant/home-assistant:stable

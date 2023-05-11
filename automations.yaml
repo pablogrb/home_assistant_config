@@ -1,0 +1,59 @@
+- id: '1668031691433'
+  alias: Living Room reading light
+  description: ''
+  trigger:
+  - device_id: 6c093b601bb837432fdd253ecafe8b7d
+    domain: zha
+    platform: device
+    type: remote_button_short_press
+    subtype: button
+  condition: []
+  action:
+  - type: toggle
+    device_id: d304aa168c344db4702332647019f460
+    entity_id: switch.sonoff_s26r2zb_655f8a25_on_off
+    domain: switch
+  mode: single
+- id: '1668372783242'
+  alias: Terrace string lights
+  description: ''
+  trigger:
+  - device_id: 6c093b601bb837432fdd253ecafe8b7d
+    domain: zha
+    platform: device
+    type: remote_button_double_press
+    subtype: button
+  condition: []
+  action:
+  - type: toggle
+    device_id: 5bc6ea658005725fb154ea3c2d7ef792
+    entity_id: switch.sonoff_s26r2zb_db418a25_on_off
+    domain: switch
+  mode: single
+- id: '1674773513687'
+  alias: Office preheat 7 am
+  description: ''
+  trigger:
+  - platform: time
+    at: 07:00:00
+  condition: []
+  action:
+  - service: climate.set_hvac_mode
+    data:
+      hvac_mode: heat
+    target:
+      entity_id: climate.office
+  mode: single
+- id: '1682098349523'
+  alias: Update OpenUV
+  description: ''
+  trigger:
+  - platform: time_pattern
+    minutes: '30'
+  condition: []
+  action:
+  - service: homeassistant.update_entity
+    data: {}
+    target:
+      entity_id: sensor.current_uv_index
+  mode: single
