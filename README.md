@@ -45,27 +45,21 @@ Github user [@Hypfer](https://github.com/Hypfer) developed an [ESP8266](https://
 
 ### Bill of materials
 
-- [x] 3x IKEA Vindriktning Air Quality sensors
-- [x] 3x WeMos D1 mini ESP8266 boards (Thanks [@olivercrask](https://github.com/olivercrask))
-- [x] Soldering iron [ifixit](https://store.ifixit.co.uk/products/soldering-station)
-- [x] Helping hands [ifixit](https://store.ifixit.co.uk/products/helping-hands?variantid=31652614832177)
-- [x] Flush cutters [ifixit](https://store.ifixit.co.uk/products/flush-cutter-c-h-p-chp-170)
-- [x] Solder [ifixit](https://store.ifixit.co.uk/products/stannol-solder-hs10fair)
-- [x] Long PH0 Screwdriver
-- [x] Data-enabled USB A to USB micro B cable
+- 3x IKEA Vindriktning Air Quality sensors
+- 3x WeMos D1 mini ESP8266 boards (Thanks [@olivercrask](https://github.com/olivercrask))
+- Soldering iron [ifixit](https://store.ifixit.co.uk/products/soldering-station)
+- Helping hands [ifixit](https://store.ifixit.co.uk/products/helping-hands?variantid=31652614832177)
+- Flush cutters [ifixit](https://store.ifixit.co.uk/products/flush-cutter-c-h-p-chp-170)
+- Solder [ifixit](https://store.ifixit.co.uk/products/stannol-solder-hs10fair)
+- Long PH0 Screwdriver
+- Data-enabled USB A to USB micro B cable
 
 ### Task list
 
-- [x] Check if my iFixit screwdriver kit can open the IKEA sensor
-> Resolved: The PH0 from the RPi tower cooler works great.
-- [x] Determine the connection types on the IKEA and WeMos ends and purchase the required cables
-> Resolved: Both [lond](https://hackaday.io/hacker/23240-lond) at [hackaday](https://hackaday.io/project/181195-ikea-vindriktning-pcb#j-discussions-title) and [PistolPete](https://community.home-assistant.io/u/PistolPete) at the [Home Assistant community](https://community.home-assistant.io/t/ikea-vindriktning-air-quality-sensor/324599/161) figured out that the top of the VDK pcb contains the same contacts as the test pads where others have connected the ESPs. This contact pad fits the Molex PicoBlade 5 pin straigh socket as a surface mount component.
-- [x] Solder contacts to the sensor board and the Wemos
-> Resolved: surface mount was too hard, mounted in the pads of the sensor and the through holes of the wemos following [these](https://style.oversubstance.net/2021/08/diy-use-an-ikea-vindriktning-air-quality-sensor-in-home-assistant-with-esphome/) instructions
-- [x] Flash the firmware to the wemos
-> Resolved: Get the Arduino IDE from the Microsoft Store, install ESP support _then_ select the wemos board as the board type _then_ install the libraries. When setting up the mqtt server, only the ip of the mosquitto container is needed (no `mqtt:` prefix)
-- [x] Set up an MQTT broker as a [docker instance](https://hometechhacker.com/mqtt-home-assistant-using-docker-eclipse-mosquitto/)
-- [x] Set up the MQTT integration on home assistant following the [official documentation](https://www.home-assistant.io/integrations/mqtt/)
+- Solder contacts to the sensor board and the Wemos using the test pads of the sensor and the through holes of the wemos following [these](https://style.oversubstance.net/2021/08/diy-use-an-ikea-vindriktning-air-quality-sensor-in-home-assistant-with-esphome/) instructions.
+- Flash the firmware to the wemos. Resolved: Get the Arduino IDE from the Microsoft Store, install ESP support _then_ select the wemos board as the board type _then_ install the libraries. When setting up the mqtt server, only the ip of the mosquitto container is needed (no `mqtt:` prefix).
+- Set up an MQTT broker as a [docker instance](https://hometechhacker.com/mqtt-home-assistant-using-docker-eclipse-mosquitto/)
+- Set up the MQTT integration on home assistant following the [official documentation](https://www.home-assistant.io/integrations/mqtt/)
 
 ### Home Assistant Setup
 
@@ -208,8 +202,7 @@ It's not clear how the thermo-hygrometer in the base station transmits its data.
 The output contains data from the weather station and the thermohygrometer.
 After some finegling I have the rtl_433 sending data to the MQTT broker and successfully receiving it in CLI and in the Home Assistant MQTT integration with the command
 `rtl_433 -f 868M -s 1024k -F "mqtt:<raspi ip>,user=<username>,pass=<password>,retain=0,devices=rtl_433[/id]"`
-- Integrate the MQTT rtl_433 command as a service in RaspberryPi OS
-> Set up following [this instructions](https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/). The `rtl_433.service` file integrates the `launch_rtl_433.sh` script that waits for the MQTT container to boot and then lauches the rtl_433 receiver with logging
+- Integrate the MQTT rtl_433 command as a service in RaspberryPi OS following [this instructions](https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/). The `rtl_433.service` file integrates the `launch_rtl_433.sh` script that waits for the MQTT container to boot and then lauches the rtl_433 receiver with logging.
 
 `launch_rtl_433.sh`
 ```bash
@@ -303,4 +296,113 @@ template:
         {% set wvp = RH/100*6.105*e**((12.27*t_a)/(237.7+t_a)) %}
         {% set AT = t_a + 0.33*wvp - 0.7*ws - 4 %}
         {{AT}}
+```
+
+# 3: Power data
+
+Power data is collected using the [SMETS2 Display and CAD](https://shop.glowmarkt.com/products/display-and-cad-combined-for-smart-meter-customers) from Hildebrand Glowmarkt. This display collects data from the E-ON smart meter and exposes it to Home Assistant via MQTT.
+
+### Bill of materials
+- [SMETS2 Display and CAD](https://shop.glowmarkt.com/products/display-and-cad-combined-for-smart-meter-customers)
+
+### Home Assistant setup
+
+User [Robert A](https://community.home-assistant.io/u/robertalexa) has documented how to setup the Glowmarkt CAD with home assistant [here](https://community.home-assistant.io/t/glow-hildebrand-display-local-mqtt-access-template-help/428638). These instructions have been sumarized and extended by [Techbits](https://techbits.io/hildebrand-glow-display-mqtt-home-assistant-setup/). I added a couple of entries to get all the data from the CAD json.
+
+`configuration.yaml`
+```yaml
+mqtt:
+  sensor:
+  # MQTT config for power data
+    - name: "Smart Meter Electricity: Import"
+      unique_id: "smart_meter_electricity_import"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "energy"
+      unit_of_measurement: "kWh"
+      state_class: "total_increasing"
+      value_template: >
+        {% if value_json['electricitymeter']['energy']['import']['cumulative'] == 0 %}
+          {{ states('sensor.smart_meter_electricity_import') }}
+        {% else %}
+          {{ value_json['electricitymeter']['energy']['import']['cumulative'] }}
+        {% endif %}
+      icon: "mdi:flash"
+    - name: "Smart Meter Electricity: Import (Today)"
+      unique_id: "smart_meter_electricity_import_today"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "energy"
+      unit_of_measurement: "kWh"
+      state_class: "measurement"
+      value_template: >
+        {% if value_json['electricitymeter']['energy']['import']['day'] == 0 
+          and now() > now().replace(hour=0).replace(minute=1).replace(second=0).replace(microsecond=0) %}
+          {{ states('sensor.smart_meter_electricity_import_today') }}
+        {% else %}
+          {{ value_json['electricitymeter']['energy']['import']['day'] }}
+        {% endif %}
+      icon: "mdi:flash"
+    - name: "Smart Meter Electricity: Import (This week)"
+      unique_id: "smart_meter_electricity_import_week"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "energy"
+      unit_of_measurement: "kWh"
+      state_class: "measurement"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['week'] }}"
+      icon: "mdi:flash"
+    - name: "Smart Meter Electricity: Import (This month)"
+      unique_id: "smart_meter_electricity_import_month"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "energy"
+      unit_of_measurement: "kWh"
+      state_class: "measurement"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['month'] }}"
+      icon: "mdi:flash"
+    - name: "Smart Meter Electricity: Import Unit Rate"
+      unique_id: "smart_meter_electricity_import_unit_rate"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "monetary"
+      unit_of_measurement: "GBP/kWh"
+      state_class: "measurement"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['price']['unitrate'] }}"
+      icon: "mdi:cash"
+    - name: "Smart Meter Electricity: Import Standing Charge"
+      unique_id: "smart_meter_electricity_import_standing_charge"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "monetary"
+      unit_of_measurement: "GBP"
+      state_class: "measurement"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['price']['standingcharge'] }}"
+      icon: "mdi:cash"
+    - name: "Smart Meter Electricity: Power"
+      unique_id: "smart_meter_electricity_power"
+      state_topic: "glow/441793526434/SENSOR/electricitymeter"
+      device_class: "power"
+      unit_of_measurement: "kW"
+      state_class: "measurement"
+      value_template: >
+        {% if value_json['electricitymeter']['power']['value'] < 0 %}
+          {{ states('sensor.smart_meter_electricity_power') }}
+        {% else %}
+          {{ value_json['electricitymeter']['power']['value'] }}
+        {% endif %}
+      icon: "mdi:flash""
+```
+
+Additionally, a template sensor is used to calculate the electricity cost for the day.
+`configuration.yaml`
+```yaml
+template:
+  sensor:
+    # Energy Costs
+    - name: "Smart Meter Electricity: Cost (Today)"
+      unique_id: smart_meter_electricity_cost_today
+      device_class: monetary
+      unit_of_measurement: "GBP"
+      state_class: "total_increasing"
+      icon: mdi:cash
+      state: "{{ (
+          states('sensor.smart_meter_electricity_import_today') | float 
+          * states('sensor.smart_meter_electricity_import_unit_rate') | float 
+          + states('sensor.smart_meter_electricity_import_standing_charge') | float
+        ) | round(2) }}"
 ```
