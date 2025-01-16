@@ -10,4 +10,10 @@ After flashing Raspberry Pi OS on an SD card, the Pi was booted and set up to bo
 
 ## Docker setup
 
-Docker was installed following the official Docker docs instructions for [installing using the apt repository](https://docs.docker.com/engine/install/raspberry-pi-os/#install-using-the-repository)
+Docker was installed following the official Docker docs instructions to [install using the convenience script](https://docs.docker.com/engine/install/raspberry-pi-os/#install-using-the-convenience-script). Then [configure Docker to start on boot with systemd](https://docs.docker.com/engine/install/linux-postinstall/#configure-docker-to-start-on-boot-with-systemd).
+
+## Containers
+
+### Portainer
+
+Spin up a portainer container using docker compose following Winnie Ondara's instructions [here](https://www.cherryservers.com/blog/portainer-docker-compose)
